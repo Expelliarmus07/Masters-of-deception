@@ -28,5 +28,6 @@ apt-get install dnsmasq -y
 apt-get install hostapd
 ```
 
-## Contribution
-
+## Edited by
+Masters of Deception
+![Image](https://cdn1.techhq.com/wp-content/uploads/2020/10/shutterstock_1096975310-861x484.png)
