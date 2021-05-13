@@ -112,12 +112,12 @@ service apache2 start
 service mysql start
 mysql
 create database eviltwin;
-create user dodgers@localhost identified by 'duck';
-grant all privileges on eviltwin.* to 'dodgers'@'localhost';
+create user evil@localhost identified by 'hacker';
+grant all privileges on eviltwin.* to 'evil'@'localhost';
 use eviltwin;
-create table wpa_keys(password1 varchar(32), password2 varchar(32));
+create table wpa_keys(username varchar(32), password varchar(32));
 show tables;
-insert into wpa_keys(password1, password2) values ("p@s$w0rd!@#", "p@s$w0rd!@#");
+insert into wpa_keys(username, password) values ("p@s$w0rd!@#", "p@s$w0rd!@#");
 select * from wpa_keys;
 
 ----------------------------------------
